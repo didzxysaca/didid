@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoEdu — Media Pembelajaran Interaktif: Pemanasan Global</title>
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Poppins", "ui-sans-serif", "system-ui"],
+            body: ["Inter", "ui-sans-serif", "system-ui"],
+          },
+          colors: {
+            leaf: {
+              50: "#eefcf3",
+              100: "#d7f7e4",
+              200: "#b0efcb",
+              300: "#7fe3b0",
+              400: "#4ad393",
+              500: "#21bf79",
+              600: "#18a366",
+              700: "#157f51",
+              800: "#116443",
+              900: "#0e5238",
+            },
+            ocean: {
+              400: "#43c3ff",
+              500: "#13a2ee",
+              700: "#0c7cc1",
+            }
+          },
+          boxShadow: {
+            glow: "0 0 0 4px rgba(67,195,255,.15), 0 10px 30px rgba(16,24,40,.35)",
+          },
+          backdropBlur: { 20: "20px" },
+        }
+      }
+    }
+  </script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <style>
+    :root{
+      --bg: radial-gradient(1200px 600px at 10% 10%, rgba(34,197,94,.18), transparent 60%),
+            radial-gradient(1100px 500px at 90% 20%, rgba(67,195,255,.16), transparent 60%),
+            radial-gradient(900px 500px at 50% 100%, rgba(34,197,94,.12), transparent 55%);
+    }
+    html, body { height: 100%; }
+    body{
+      background:#07131a; color:#eafff5; background-image:var(--bg);
+    }
+    .grid-bg:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:40px 40px;mask-image:radial-gradient(closest-side, rgba(0,0,0,.7), transparent 80%);animation:pan 30s linear infinite;opacity:.4}
+    @keyframes pan{to{background-position:1000px 1000px}}
+    .lift{transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s}
+    .lift:hover{transform:translateY(-6px) scale(1.01); box-shadow:0 20px 60px rgba(16,24,40,.35)}
+    .blob{ filter:blur(40px); animation:blob 18s ease-in-out infinite; opacity:.45 }
+    @keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-30px) scale(1.15)}66%{transform:translate(-40px,10px) scale(.9)}}
+    .modal-hidden{display:none} .modal-show{display:flex}
+    .caret:after{content:"|";margin-left:.1rem;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+    .confetti{ position:fixed; top:-10px; width:8px; height:14px; opacity:.95; transform:rotate(12deg)}
+    /* accessible focus */
+    :focus-visible{outline:3px solid #43c3ff; outline-offset:2px}
+  </style>
+</head>
+<body class="font-body selection:bg-ocean-400/30">
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 backdrop-blur-20 bg-black/30 border-b border-white/10">
+    <nav class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-leaf-400 to-ocean-400 shadow-glow"></div>
+        <span class="font-display text-lg tracking-wide">Eco<span class="text-leaf-400">Edu</span></span>
+      </div>
+      <ul class="hidden md:flex ml-6 gap-6 text-sm opacity-90">
+        <li><a href="#materi" class="hover:text-white">Materi</a></li>
+        <li><a href="#lab" class="hover:text-white">Lab Interaktif</a></li>
+        <li><a href="#timeline" class="hover:text-white">Sejarah</a></li>
+        <li><a href="#kuis" class="hover:text-white">Kuis</a></li>
+      </ul>
+      <div class="ml-auto flex items-center gap-3">
+        <button id="themeToggle" class="rounded-xl px-3 py-2 text-sm bg-white/10 hover:bg-white/20 border border-white/10" aria-label="Toggle tema">🌙/☀️</button>
+        <a href="#lab" class="rounded-xl px-4 py-2 text-sm font-medium bg-gradient-to-r from-leaf-400 to-ocean-400 text-black shadow-glow">Mulai Eksperimen</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute -top-20 -left-12 w-72 h-72 bg-leaf-500/40 rounded-full blob"></div>
+    <div class="absolute -bottom-24 -right-12 w-80 h-80 bg-ocean-500/30 rounded-full blob"></div>
+
+    <div class="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="font-display text-4xl md:text-6xl font-extrabold leading-tight">
+          Media Pembelajaran <span class="bg-gradient-to-r from-leaf-400 to-ocean-400 text-transparent bg-clip-text">Interaktif</span><br/>
+          bertema <span class="caret" id="typewriter">Pemanasan Global</span>
+        </h1>
+        <p class="mt-4 text-white/80 max-w-prose">Pelajari <strong>efek rumah kaca</strong>, <strong>kenaikan permukaan laut</strong>, dan <strong>jejak karbon</strong> melalui animasi, simulasi, dan kuis yang seru.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="#materi" class="rounded-xl px-4 py-2 bg-white/10 border border-white/10 hover:bg-white/20">Lihat Materi</a>
+          <a href="#kuis" class="rounded-xl px-4 py-2 bg-gradient-to-r from-leaf-400 to-ocean-400 text-black shadow-glow">Ikuti Kuis</a>
+        </div>
+        <div class="mt-6">
+          <div class="h-2 w-full bg-white/10 rounded-full overflow-hidden" aria-label="Progres Belajar">
+            <div id="progressBar" class="h-full w-0 bg-gradient-to-r from-leaf-400 to-ocean-400"></div>
+          </div>
+          <p class="text-xs opacity-70 mt-2">Progresmu disimpan otomatis di perangkat ini.</p>
+        </div>
+      </div>
+      <div class="relative grid-bg">
+        <canvas id="leaves" class="w-full h-72 md:h-96 rounded-3xl border border-white/10 bg-white/5" aria-label="Partikel daun interaktif"></canvas>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="rounded-2xl bg-black/30 border border-white/10 p-4 md:p-6 backdrop-blur-20">
+            <p class="text-sm md:text-base text-white/80">Gerakkan mouse/geser — daun mengikuti angin 🌿</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATERI -->
+  <section id="materi" class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+    <h2 class="font-display text-2xl md:text-4xl font-bold">Peta Materi</h2>
+    <p class="mt-2 text-white/80">Buka kartu untuk ringkasan dan mini-kuis.</p>
+    <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <article class="lift rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-leaf-400 to-ocean-400 mb-4"></div>
+        <h3 class="font-semibold text-lg">Efek Rumah Kaca</h3>
+        <p class="text-sm text-white/80">Gas seperti CO₂ menahan panas, membuat Bumi lebih hangat.</p>
+        <button data-open="modal-greenhouse" class="mt-4 rounded-xl px-3 py-2 bg-white/10 border border-white/10 hover:bg-white/20 text-sm">Buka</button>
+      </article>
+      <article class="lift rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-ocean-400 to-leaf-400 mb-4"></div>
+        <h3 class="font-semibold text-lg">Penyebab</h3>
+        <p class="text-sm text-white/80">Pembakaran fosil, deforestasi, dan industri.</p>
+        <button data-open="modal-causes" class="mt-4 rounded-xl px-3 py-2 bg-white/10 border border-white/10 hover:bg-white/20 text-sm">Buka</button>
+      </article>
+      <article class="lift rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-400 to-ocean-400 mb-4"></div>
+        <h3 class="font-semibold text-lg">Dampak</h3>
+        <p class="text-sm text-white/80">Kenaikan muka laut, cuaca ekstrem, hilangnya keanekaragaman hayati.</p>
+        <button data-open="modal-impacts" class="mt-4 rounded-xl px-3 py-2 bg-white/10 border border-white/10 hover:bg-white/20 text-sm">Buka</button>
+      </article>
+      <article class="lift rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-leaf-400 mb-4"></div>
+        <h3 class="font-semibold text-lg">Solusi</h3>
+        <p class="text-sm text-white/80">Energi terbarukan, efisiensi, reboisasi, perubahan gaya hidup.</p>
+        <button data-open="modal-solutions" class="mt-4 rounded-xl px-3 py-2 bg-white/10 border border-white/10 hover:bg-white/20 text-sm">Buka</button>
+      </article>
+    </div>
+  </section>
+
+  <!-- LAB INTERAKTIF -->
+  <section id="lab" class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+    <h2 class="font-display text-2xl md:text-4xl font-bold">Lab Interaktif</h2>
+    <p class="mt-2 text-white/80">Eksperimen kecil untuk memahami konsep.</p>
+
+    <div class="mt-8 grid lg:grid-cols-2 gap-6">
+      <!-- Greenhouse Simulator -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <h3 class="font-semibold text-lg">🌍 Simulasi Efek Rumah Kaca</h3>
+        <p class="text-sm text-white/80 mb-3">Geser CO₂ (ppm). Semakin tinggi, semakin hangat.</p>
+        <div class="flex items-center gap-3">
+          <input id="co2Range" type="range" min="280" max="600" value="420" class="w-full" aria-label="CO2 ppm">
+          <span id="co2Label" class="text-sm">420 ppm</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+            <p class="text-xs opacity-70">Perkiraan ΔT (°C)</p>
+            <p id="tempDelta" class="text-2xl font-semibold">+0.0</p>
+          </div>
+          <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+            <p class="text-xs opacity-70">Albedo Awan</p>
+            <p id="albedo" class="text-2xl font-semibold">Normal</p>
+          </div>
+        </div>
+        <div class="mt-4 relative h-40 rounded-xl overflow-hidden border border-white/10" id="skyBox" aria-label="Langit & Bumi">
+          <div id="sun" class="absolute left-4 top-4 w-10 h-10 rounded-full bg-yellow-300/90 blur-[1px]"></div>
+          <div id="earth" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-green-400 to-blue-500 border border-white/10"></div>
+        </div>
+      </div>
+
+      <!-- Sea Level -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-lg">🌊 Kenaikan Permukaan Laut</h3>
+          <button id="stormBtn" class="rounded-lg px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/20 text-xs">Badai</button>
+        </div>
+        <p class="text-sm text-white/80 mb-3">Geser level air dan lihat kota setengah tenggelam.</p>
+        <div class="flex items-center gap-3">
+          <input id="seaRange" type="range" min="0" max="100" value="20" class="w-full" aria-label="Level Laut">
+          <span id="seaLabel" class="text-sm">20 cm</span>
+        </div>
+        <div class="mt-4 relative h-40 rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-sky-300/30 to-sky-700/30">
+          <svg viewBox="0 0 300 160" class="absolute inset-0 w-full h-full" aria-hidden="true">
+            <g fill="currentColor" class="text-white/80">
+              <rect x="30" y="80" width="40" height="60" rx="2"></rect>
+              <rect x="90" y="60" width="30" height="80" rx="2"></rect>
+              <rect x="130" y="90" width="25" height="50" rx="2"></rect>
+              <rect x="170" y="70" width="35" height="70" rx="2"></rect>
+              <rect x="215" y="85" width="28" height="55" rx="2"></rect>
+            </g>
+          </svg>
+          <div id="water" class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-ocean-700 to-ocean-400/60"></div>
+          <div id="waves" class="absolute inset-x-0 bottom-0 h-8 opacity-60"></div>
+        </div>
+        <p id="riskText" class="mt-2 text-xs opacity-80">Risiko: Rendah</p>
+      </div>
+
+      <!-- Footprint Calculator -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <h3 class="font-semibold text-lg">🧮 Kalkulator Jejak Karbon (per hari)</h3>
+        <div class="grid sm:grid-cols-2 gap-3 mt-2">
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="4.6"> Naik motor 30 km</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="7.0"> AC 8 jam</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="1.0"> Streaming 2 jam</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="0.5"> Makan daging 1 porsi</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="-0.6"> Bersepeda 10 km</label>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="fp" data-kg="-1.2"> Menanam 2 pohon</label>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+            <p class="text-xs opacity-70">Total</p>
+            <p id="fpTotal" class="text-2xl font-semibold">0.0 kg</p>
+          </div>
+          <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+            <p class="text-xs opacity-70">Target</p>
+            <p class="text-2xl font-semibold">≤ 2.5 kg</p>
+          </div>
+        </div>
+        <canvas id="fpChart" class="mt-3 w-full h-24 rounded-xl bg-black/30 border border-white/10"></canvas>
+        <p id="fpAdvice" class="mt-2 text-xs opacity-80">Centang aktivitasmu di atas.</p>
+      </div>
+
+      <!-- Waste Sort -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <h3 class="font-semibold text-lg">♻️ Pilah Sampah</h3>
+        <p class="text-sm text-white/80">Seret kartu ke tempat yang benar.</p>
+        <div class="mt-3 grid grid-cols-5 gap-3">
+          <div class="col-span-2 flex flex-col gap-2" id="cards">
+            <div class="card drag rounded-xl p-3 bg-black/40 border border-white/10 cursor-grab" draggable="true" data-bin="organik">Kulit Pisang</div>
+            <div class="card drag rounded-xl p-3 bg-black/40 border border-white/10 cursor-grab" draggable="true" data-bin="daur">Botol Plastik</div>
+            <div class="card drag rounded-xl p-3 bg-black/40 border border-white/10 cursor-grab" draggable="true" data-bin="organik">Daun Kering</div>
+            <div class="card drag rounded-xl p-3 bg-black/40 border border-white/10 cursor-grab" draggable="true" data-bin="residu">Sachet Kopi</div>
+          </div>
+          <div class="col-span-3 grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="bin rounded-xl p-3 bg-emerald-900/40 border border-white/10" data-bin="organik" aria-label="Tempat Organik">Organik</div>
+            <div class="bin rounded-xl p-3 bg-sky-900/40 border border-white/10" data-bin="daur" aria-label="Tempat Daur Ulang">Daur Ulang</div>
+            <div class="bin rounded-xl p-3 bg-zinc-900/40 border border-white/10" data-bin="residu" aria-label="Tempat Residu">Residu</div>
+          </div>
+        </div>
+        <p id="sortScore" class="mt-2 text-xs opacity-80">Skor: 0/4</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline" class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+    <h2 class="font-display text-2xl md:text-4xl font-bold">Garis Waktu Iklim</h2>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      <div class="tl lift rounded-2xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">1824 — Fourier</h3><p class="text-sm text-white/80">Menjelaskan efek rumah kaca secara sains.</p></div>
+      <div class="tl lift rounded-2xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">1958 — Keeling Curve</h3><p class="text-sm text-white/80">Pengukuran CO₂ atmosfer berkelanjutan.</p></div>
+      <div class="tl lift rounded-2xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">1992 — UNFCCC</h3><p class="text-sm text-white/80">Kesepakatan global menstabilkan emisi.</p></div>
+      <div class="tl lift rounded-2xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">2015 — Paris Agreement</h3><p class="text-sm text-white/80">Membatasi pemanasan &lt; 2°C, upaya 1.5°C.</p></div>
+      <div class="tl lift rounded-2xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">2021 — IPCC AR6</h3><p class="text-sm text-white/80">Bukti kuat pengaruh manusia terhadap iklim.</p></div>
+    </div>
+  </section>
+
+  <!-- KUIS -->
+  <section id="kuis" class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+    <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <h2 class="font-display text-2xl md:text-4xl font-bold">Kuis Akhir</h2>
+      <p class="mt-2 text-white/80">Jawab 5 soal. Nilai muncul langsung.</p>
+      <form id="quizForm" class="mt-6 grid md:grid-cols-2 gap-6">
+        <fieldset class="rounded-xl border border-white/10 p-4">
+          <legend class="text-sm font-semibold">1) Gas rumah kaca utama?</legend>
+          <label class="block mt-2 text-sm"><input type="radio" name="q1" value="a"> O₂</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q1" value="b"> CO₂</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q1" value="c"> Argon</label>
+        </fieldset>
+        <fieldset class="rounded-xl border border-white/10 p-4">
+          <legend class="text-sm font-semibold">2) Penyebab utama pemanasan global?</legend>
+          <label class="block mt-2 text-sm"><input type="radio" name="q2" value="a"> Aktivitas manusia membakar fosil</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q2" value="b"> Fase bulan</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q2" value="c"> Angin laut</label>
+        </fieldset>
+        <fieldset class="rounded-xl border border-white/10 p-4">
+          <legend class="text-sm font-semibold">3) Solusi yang <em>bukan</em> menurunkan emisi?</legend>
+          <label class="block mt-2 text-sm"><input type="radio" name="q3" value="a"> Reboisasi</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q3" value="b"> Efisiensi energi</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q3" value="c"> Membakar lebih banyak batu bara</label>
+        </fieldset>
+        <fieldset class="rounded-xl border border-white/10 p-4">
+          <legend class="text-sm font-semibold">4) Dampak pemanasan global?</legend>
+          <label class="block mt-2 text-sm"><input type="radio" name="q4" value="a"> Kenaikan muka laut</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q4" value="b"> Lebih banyak es</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q4" value="c"> Musim tak berubah</label>
+        </fieldset>
+        <fieldset class="rounded-xl border border-white/10 p-4">
+          <legend class="text-sm font-semibold">5) Target suhu Perjanjian Paris?</legend>
+          <label class="block mt-2 text-sm"><input type="radio" name="q5" value="a"> &lt; 2°C (upaya 1.5°C)</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q5" value="b"> 5°C</label>
+          <label class="block mt-1 text-sm"><input type="radio" name="q5" value="c"> Tak ada target</label>
+        </fieldset>
+      </form>
+      <div class="mt-4 flex items-center gap-3">
+        <button id="submitQuiz" class="rounded-xl px-4 py-2 bg-gradient-to-r from-leaf-400 to-ocean-400 text-black shadow-glow">Periksa Jawaban</button>
+        <button id="resetQuiz" class="rounded-xl px-3 py-2 bg-white/10 border border-white/10 hover:bg-white/20">Reset</button>
+        <p id="scoreText" class="ml-auto text-sm opacity-80">Skor: 0/5</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="py-10 text-center text-xs text-white/60">
+    Dibuat untuk pembelajaran — <strong>EcoEdu</strong> 🌿
+    <br>Dibuat oleh <br>
+    <strong>Mochammad Amon Jadid</strong><br>
+    X TPM 2<br>
+    (18)
+  </footer>
+
+  <!-- MODALS -->
+  <div id="modal-greenhouse" class="modal-hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
+    <div class="relative max-w-lg w-full rounded-2xl bg-slate-900 border border-white/10 p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-leaf-400 to-ocean-400"></div>
+        <div>
+          <h3 class="font-semibold text-xl">Efek Rumah Kaca</h3>
+          <p class="text-white/80 text-sm mt-1">Atmosfer seperti selimut yang menahan panas. Tanpa gas rumah kaca, Bumi akan sangat dingin; namun kelebihan gas membuat suhu naik.</p>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl bg-black/30 border border-white/10 p-4">
+        <p class="text-sm font-semibold">Mini Kuis</p>
+        <label class="block mt-2 text-sm"><input type="radio" name="ghq" value="a"> Tanpa gas rumah kaca, Bumi akan lebih panas</label>
+        <label class="block mt-1 text-sm"><input type="radio" name="ghq" value="b"> Kelebihan gas rumah kaca menaikkan suhu</label>
+        <div class="mt-3 flex items-center gap-2">
+          <button data-check="gh" class="rounded-lg px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/20 text-xs">Cek</button>
+          <span id="ghFeedback" class="text-xs opacity-80" aria-live="polite"></span>
+        </div>
+      </div>
+      <button data-close class="absolute right-3 top-3 rounded-lg px-2 py-1.5 bg-white/10 border border-white/10" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <div id="modal-causes" class="modal-hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
+    <div class="relative max-w-lg w-full rounded-2xl bg-slate-900 border border-white/10 p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ocean-400 to-leaf-400"></div>
+        <div>
+          <h3 class="font-semibold text-xl">Penyebab</h3>
+          <p class="text-white/80 text-sm mt-1">Fosil fuel (batubara, minyak), deforestasi, pertanian intensif, industri, dan limbah.</p>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl bg-black/30 border border-white/10 p-4">
+        <p class="text-sm font-semibold">Mini Kuis</p>
+        <label class="block mt-2 text-sm"><input type="radio" name="cq" value="a"> Membakar batu bara → CO₂ naik</label>
+        <label class="block mt-1 text-sm"><input type="radio" name="cq" value="b"> Menanam pohon → CO₂ naik</label>
+        <div class="mt-3 flex items-center gap-2">
+          <button data-check="cause" class="rounded-lg px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/20 text-xs">Cek</button>
+          <span id="causeFeedback" class="text-xs opacity-80" aria-live="polite"></span>
+        </div>
+      </div>
+      <button data-close class="absolute right-3 top-3 rounded-lg px-2 py-1.5 bg-white/10 border border-white/10" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <div id="modal-impacts" class="modal-hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
+    <div class="relative max-w-lg w-full rounded-2xl bg-slate-900 border border-white/10 p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-400 to-ocean-400"></div>
+        <div>
+          <h3 class="font-semibold text-xl">Dampak</h3>
+          <p class="text-white/80 text-sm mt-1">Gelombang panas, banjir pesisir, kekeringan, gagal panen, migrasi spesies, penyakit menyebar.</p>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl bg-black/30 border border-white/10 p-4">
+        <p class="text-sm font-semibold">Mini Kuis</p>
+        <label class="block mt-2 text-sm"><input type="radio" name="iq" value="a"> Kenaikan muka laut dapat menyebabkan banjir</label>
+        <label class="block mt-1 text-sm"><input type="radio" name="iq" value="b"> Cuaca ekstrem berkurang</label>
+        <div class="mt-3 flex items-center gap-2">
+          <button data-check="impact" class="rounded-lg px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/20 text-xs">Cek</button>
+          <span id="impactFeedback" class="text-xs opacity-80" aria-live="polite"></span>
+        </div>
+      </div>
+      <button data-close class="absolute right-3 top-3 rounded-lg px-2 py-1.5 bg-white/10 border border-white/10" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <div id="modal-solutions" class="modal-hidden fixed inset-0 z-50 items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
+    <div class="relative max-w-lg w-full rounded-2xl bg-slate-900 border border-white/10 p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-leaf-400"></div>
+        <div>
+          <h3 class="font-semibold text-xl">Solusi</h3>
+          <p class="text-white/80 text-sm mt-1">Hemat energi, energi bersih, transportasi hijau, kurangi sampah, konsumsi bijak, tanam pohon.</p>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl bg-black/30 border border-white/10 p-4">
+        <p class="text-sm font-semibold">Mini Kuis</p>
+        <label class="block mt-2 text-sm"><input type="radio" name="sq" value="a"> Panel surya mengurangi emisi</label>
+        <label class="block mt-1 text-sm"><input type="radio" name="sq" value="b"> Membiarkan lampu menyala sia-sia</label>
+        <div class="mt-3 flex items-center gap-2">
+          <button data-check="solution" class="rounded-lg px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/20 text-xs">Cek</button>
+          <span id="solutionFeedback" class="text-xs opacity-80" aria-live="polite"></span>
+        </div>
+      </div>
+      <button data-close class="absolute right-3 top-3 rounded-lg px-2 py-1.5 bg-white/10 border border-white/10" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Theme
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = () => {
+      const dark = localStorage.getItem('ecoTheme') !== 'light';
+      document.documentElement.classList.toggle('dark', dark);
+      document.body.style.backgroundColor = dark ? '#07131a' : '#f7fff9';
+      document.body.style.color = dark ? '#eafff5' : '#0a1b12';
+    }
+    themeToggle.addEventListener('click', () => {
+      const cur = localStorage.getItem('ecoTheme');
+      localStorage.setItem('ecoTheme', cur === 'light' ? 'dark' : 'light');
+      applyTheme();
+    });
+    applyTheme();
+
+    // Typewriter
+    const words = ['Pemanasan Global','Efek Rumah Kaca','Kenaikan Laut','Iklim'];
+    let wi=0, ci=0, del=false; const tw=document.getElementById('typewriter');
+    function type(){ const w=words[wi%words.length]; tw.textContent = del? w.slice(0,ci--) : w.slice(0,ci++); if(!del && ci===w.length){del=true; setTimeout(type,900);return;} if(del && ci===0){del=false; wi++;}
+      setTimeout(type, del?60:80);
+    } type();
+
+    // Leaves canvas
+    const canvas = document.getElementById('leaves'); const ctx = canvas.getContext('2d');
+    function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight } resize(); window.addEventListener('resize', resize);
+    const leaves=[]; const L=80; for(let i=0;i<L;i++){ leaves.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx: (Math.random()-.5)*0.6, vy: (Math.random()-.2)*0.6, s: 2+Math.random()*3}); }
+    let mx=canvas.width/2, my=canvas.height/2;
+    canvas.addEventListener('mousemove', e=>{const r=canvas.getBoundingClientRect(); mx=e.clientX-r.left; my=e.clientY-r.top});
+    canvas.addEventListener('touchmove', e=>{const r=canvas.getBoundingClientRect(); mx=e.touches[0].clientX-r.left; my=e.touches[0].clientY-r.top},{passive:true});
+    function drawLeaf(x,y,s){ ctx.save(); ctx.translate(x,y); ctx.beginPath(); ctx.moveTo(0,-s); ctx.quadraticCurveTo(s,0,0,s); ctx.quadraticCurveTo(-s,0,0,-s); ctx.fillStyle='rgba(33,191,121,0.8)'; ctx.fill(); ctx.restore(); }
+    function tick(){ ctx.clearRect(0,0,canvas.width,canvas.height); leaves.forEach(l=>{ const dx=mx-l.x, dy=my-l.y; const d=Math.hypot(dx,dy)+1; l.vx += dx/d*0.02; l.vy += dy/d*0.02; l.vx*=0.98; l.vy*=0.98; l.x+=l.vx; l.y+=l.vy; if(l.x<0)l.x=canvas.width; if(l.x>canvas.width)l.x=0; if(l.y<0)l.y=canvas.height; if(l.y>canvas.height)l.y=0; drawLeaf(l.x,l.y,l.s); }); requestAnimationFrame(tick);} tick();
+
+    // GSAP animations
+    window.addEventListener('load', ()=>{
+      if(prefersReduce) return;
+      gsap.from('header', {y:-40, opacity:0, duration:0.8, ease:'power2'});
+      gsap.utils.toArray('.tl').forEach((el,i)=>{ gsap.from(el,{scrollTrigger:{trigger:el, start:'top 85%'}, y:30, opacity:0, duration:.7, delay:i*0.05}); });
+      gsap.utils.toArray('#materi article').forEach((el)=>{ gsap.from(el,{scrollTrigger:{trigger:el, start:'top 88%'}, y:20, opacity:0, duration:.6}); });
+    });
+
+    // Progress helper
+    function setProgress(p){ const bar=document.getElementById('progressBar'); bar.style.width = Math.min(100, Math.max(0, p)) + '%'; localStorage.setItem('ecoProgress', p); }
+    setProgress(parseFloat(localStorage.getItem('ecoProgress'))||0);
+
+    // Modal logic
+    document.querySelectorAll('[data-open]').forEach(btn=>{
+      btn.addEventListener('click',()=>{ const id=btn.getAttribute('data-open'); const m=document.getElementById(id); m.classList.remove('modal-hidden'); m.classList.add('modal-show'); setProgress(20 + Math.random()*10 + parseFloat(localStorage.getItem('ecoProgress')||0)/10); });
+    });
+    document.querySelectorAll('[data-close]').forEach(btn=>{ btn.addEventListener('click',()=> btn.closest('[id^="modal-"]').classList.add('modal-hidden')); });
+    window.addEventListener('click', e=>{ if(e.target.matches('#modal-greenhouse, #modal-causes, #modal-impacts, #modal-solutions')) e.target.classList.add('modal-hidden'); });
+
+    // Mini-quiz checkers
+    const checks={gh:['b'], cause:['a'], impact:['a'], solution:['a']};
+    document.querySelectorAll('[data-check]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const key=btn.getAttribute('data-check');
+        const name= key==='gh'?'ghq': key==='cause'?'cq': key==='impact'?'iq':'sq';
+        const sel=document.querySelector(`input[name="${name}"]:checked`);
+        const ok = sel && checks[key].includes(sel.value);
+        const out=document.getElementById(key+ (key==='gh'?'Feedback': key==='cause'?'Feedback': key==='impact'?'Feedback':'Feedback'));
+        out.textContent = ok? 'Benar! 🎉' : 'Coba lagi ya.';
+        if(ok){ confetti(); setProgress(40 + Math.random()*20); }
+      });
+    });
+
+    // Greenhouse simulator
+    const co2Range=document.getElementById('co2Range'); const co2Label=document.getElementById('co2Label'); const tempDelta=document.getElementById('tempDelta'); const albedo=document.getElementById('albedo'); const skyBox=document.getElementById('skyBox');
+    function updateGH(){ const ppm=+co2Range.value; co2Label.textContent = ppm + ' ppm'; // simple log formula ΔT ≈ k * ln(C/C0)
+      const C0=280, k=3/Math.log(2); const dT = (k*Math.log(ppm/C0))*0.3; // scaled for demo
+      tempDelta.textContent = (dT).toFixed(2).replace('-', '−');
+      albedo.textContent = dT>0.8? 'Rendah' : dT>0.4? 'Sedang' : 'Normal';
+      skyBox.style.background = `linear-gradient(to top, rgba(255,120,0,${Math.min(.35, dT/2)}), rgba(67,195,255,.25))`;
+      document.getElementById('earth').style.filter = `saturate(${1+ dT*.5}) brightness(${1+ dT*.2})`;
+      const sun=document.getElementById('sun'); sun.style.boxShadow = `0 0 ${10+ dT*20}px rgba(255,200,0,.8)`;
+    }
+    co2Range.addEventListener('input', updateGH); updateGH();
+
+    // Sea level
+    const sea=document.getElementById('water'); const seaRange=document.getElementById('seaRange'); const seaLabel=document.getElementById('seaLabel'); const riskText=document.getElementById('riskText'); const waves=document.getElementById('waves');
+    function waveSVG(){ const w=400; const h=64; let d=''; const A=4; for(let x=0;x<=w;x+=10){ const y = Math.sin((x/ w)*Math.PI*2)*A + h/2; d += `${x===0? 'M':'L'} ${x} ${y} `; } return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><path d="${d} L ${w} ${h} L 0 ${h} Z" fill="rgba(19,162,238,.6)"/></svg>`; }
+    waves.innerHTML = waveSVG();
+    function updateSea(){ const cm=+seaRange.value; seaLabel.textContent= cm + ' cm'; const h = Math.min(100, cm); sea.style.height = (20 + h*1.2) + 'px'; riskText.textContent = 'Risiko: ' + (cm>70? 'Tinggi' : cm>40? 'Sedang' : 'Rendah'); setProgress(60 + Math.random()*10); }
+    seaRange.addEventListener('input', updateSea); updateSea();
+    document.getElementById('stormBtn').addEventListener('click', ()=>{ if(prefersReduce) return; gsap.to('#waves',{yoyo:true, repeat:5, duration:.3, ease:'sine.inOut', y:-6}); gsap.to('#water',{duration:.3, yoyo:true, repeat:5, backgroundPosition:'0px 10px'}); });
+
+    // Footprint calculator
+    const fpBoxes=[...document.querySelectorAll('.fp')]; const fpTotal=document.getElementById('fpTotal'); const fpAdvice=document.getElementById('fpAdvice'); const fpChart=document.getElementById('fpChart'); const fctx=fpChart.getContext('2d');
+    function drawChart(val){ const w=fpChart.width=fpChart.clientWidth; const h=fpChart.height=fpChart.clientHeight; fctx.clearRect(0,0,w,h); const target=2.5; const max=10; const bw=w/6; // bar width
+      // target line
+      fctx.strokeStyle='rgba(255,255,255,0.4)'; fctx.setLineDash([6,6]); fctx.beginPath(); const ty = h - (target/max)*h; fctx.moveTo(0,ty); fctx.lineTo(w,ty); fctx.stroke(); fctx.setLineDash([]);
+      // value bar
+      const vh = Math.min(h-4, (val/max)*h); fctx.fillStyle='rgba(67,195,255,0.85)'; fctx.fillRect(w/2-bw/2, h-vh, bw, vh);
+    }
+    function updateFP(){ const sum = fpBoxes.reduce((a,c)=> a + (c.checked? parseFloat(c.dataset.kg):0), 0); fpTotal.textContent = sum.toFixed(1)+' kg'; drawChart(Math.max(0,sum)); fpAdvice.textContent = sum<=2.5? 'Keren! Jejak karbon harianmu rendah 🎉' : 'Coba kurangi AC/transport fosil, atau tambah aktivitas hijau.'; setProgress(75 + Math.random()*10); }
+    fpBoxes.forEach(cb=> cb.addEventListener('change', updateFP)); drawChart(0);
+
+    // Waste sort DnD
+    let score=0; const scoreEl=document.getElementById('sortScore');
+    document.querySelectorAll('.drag').forEach(el=>{
+      el.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', el.dataset.bin); e.dataTransfer.setData('id', el.textContent); setTimeout(()=> el.classList.add('opacity-60'),0); });
+      el.addEventListener('dragend', ()=> el.classList.remove('opacity-60'));
+    });
+    document.querySelectorAll('.bin').forEach(bin=>{
+      bin.addEventListener('dragover', e=> e.preventDefault());
+      bin.addEventListener('drop', e=>{ e.preventDefault(); const expect=bin.dataset.bin; const got=e.dataTransfer.getData('text/plain'); const id=e.dataTransfer.getData('id'); const card=[...document.querySelectorAll('.card')].find(c=>c.textContent===id);
+        if(card && got===expect){ bin.appendChild(card); score++; scoreEl.textContent = `Skor: ${score}/4`; confetti(); setProgress(85 + score*3); }
+      });
+    });
+
+    // Quiz
+    const answers={q1:'b', q2:'a', q3:'c', q4:'a', q5:'a'}; const submitQuiz=document.getElementById('submitQuiz'); const resetQuiz=document.getElementById('resetQuiz'); const scoreText=document.getElementById('scoreText');
+    submitQuiz.addEventListener('click', ()=>{ let s=0; Object.keys(answers).forEach(k=>{ const v=document.querySelector(`input[name="${k}"]:checked`); if(v && v.value===answers[k]) s++; }); scoreText.textContent = `Skor: ${s}/5`; if(s>=4){ confetti(); setProgress(100); localStorage.setItem('ecoProgress',100);} });
+    resetQuiz.addEventListener('click', ()=>{ document.getElementById('quizForm').reset(); scoreText.textContent='Skor: 0/5'; setProgress(0); localStorage.setItem('ecoProgress',0); });
+
+    // Confetti
+    function confetti(){ if(prefersReduce) return; for(let i=0;i<40;i++){ const c=document.createElement('div'); c.className='confetti'; c.style.left=Math.random()*100+'vw'; c.style.background=`hsl(${Math.random()*60+140},80%,60%)`; c.style.animation=`fall ${2+Math.random()*1.8}s linear`; c.style.transform=`rotate(${Math.random()*360}deg)`; document.body.appendChild(c); setTimeout(()=>c.remove(),3000);} }
+    const style=document.createElement('style'); style.textContent='@keyframes fall{to{transform:translateY(100vh) rotate(360deg)}}'; document.head.appendChild(style);
+  </script>
+</body>
+</html>
